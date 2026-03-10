@@ -341,42 +341,44 @@ def get_hosting_ip(url):
 
 @st.cache_data(ttl=3600, show_spinner=False)
 def get_whois_data(domain):
-    """Fungsi WHOIS (Gred Kebal - Anti Crash)"""
-    data = {"registrar": "Not Found", "abuse_email": "abuse@cloudflare.com", 
+    """Fungsi WHOIS Gred Tentera - Guna Terminal Sebenar!"""
+    data = {"registrar": "Not Found", "abuse_email": "", 
             "creation_date": "Not Found", "expiry_date": "Not Found"}
     try:
-        import whois
+        import subprocess
+        import re
+        
+        # Bersihkan domain
         d = domain.replace("https://", "").replace("http://", "").split('/')[0]
-        w = whois.whois(d)
         
-        data["registrar"] = w.registrar if w.registrar else "Private/Unknown"
+        # Tembak arahan 'whois' terus ke terminal Linux!
+        result = subprocess.run(['whois', d], capture_output=True, text=True, timeout=10)
+        raw = result.stdout
         
-        # Ambil item pertama kalau data jenis list
-        c_date = w.creation_date[0] if isinstance(w.creation_date, list) else w.creation_date
-        e_date = w.expiration_date[0] if isinstance(w.expiration_date, list) else w.expiration_date
+        # 1. Cari Registrar
+        reg = re.search(r'(?i)Registrar:\s*(.+)', raw)
+        if reg: data["registrar"] = reg.group(1).strip()
         
-        # --- PERTAHANAN ANTI-CRASH ---
-        if c_date:
-            if isinstance(c_date, datetime): # Kalau dia objek masa sebenar
-                age = (datetime.now() - c_date).days // 365
-                data["creation_date"] = f"{age} years ({c_date.strftime('%Y-%m-%d')})"
-            else: # Kalau library tu bagi String/Teks
-                data["creation_date"] = str(c_date)[:10] 
+        # 2. Cari Tarikh (Kita ambil 10 huruf pertama untuk format YYYY-MM-DD)
+        c_date = re.search(r'(?i)(Creation Date|Created On|Registration Time):\s*([^\n]+)', raw)
+        if c_date: data["creation_date"] = c_date.group(2).strip()[:10]
         
-        if e_date:
-            if isinstance(e_date, datetime):
-                data["expiry_date"] = e_date.strftime('%Y-%m-%d')
-            else:
-                data["expiry_date"] = str(e_date)[:10]
-                
-        # Tangkap Abuse Email
-        if w.emails:
-            emails = w.emails if isinstance(w.emails, list) else [w.emails]
-            abuse = [e for e in emails if 'abuse' in e.lower()]
-            data["abuse_email"] = abuse[0] if abuse else emails[0]
+        e_date = re.search(r'(?i)(Registry Expiry Date|Expiration Date):\s*([^\n]+)', raw)
+        if e_date: data["expiry_date"] = e_date.group(2).strip()[:10]
+        
+        # 3. Cari Email Abuse (Sangat penting!)
+        ab_email = re.search(r'(?i)Registrar Abuse Contact Email:\s*([^\s]+)', raw)
+        if ab_email:
+            data["abuse_email"] = ab_email.group(1).strip()
+        else:
+            # Teknik Sapu Bersih: Cari apa-apa email yang ada perkataan 'abuse' dalam teks terminal
+            emails = re.findall(r'[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}', raw)
+            abuse_list = [e for e in emails if 'abuse' in e.lower()]
+            if abuse_list: data["abuse_email"] = abuse_list[0]
             
     except Exception as e:
         pass
+        
     return data
 
 def _is_whitelisted(root_domain):
