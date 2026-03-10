@@ -528,3 +528,4 @@ with st.expander("⚙️ System Configuration"):
         if st.button("🔓 Revoke Access", use_container_width=True):
             st.session_state.admin_authenticated = False
             st.rerun()
+st.markdown("<div style='height: 50px;'></div>", unsafe_allow_html=True)
