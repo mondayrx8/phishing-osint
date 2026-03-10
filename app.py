@@ -341,31 +341,35 @@ def get_hosting_ip(url):
 
 @st.cache_data(ttl=3600, show_spinner=False)
 def get_whois_data(domain):
-    """Fungsi WHOIS yang jauh lebih stabil menggunakan library python-whois"""
+    """Fungsi WHOIS (Gred Kebal - Anti Crash)"""
     data = {"registrar": "Not Found", "abuse_email": "abuse@cloudflare.com", 
             "creation_date": "Not Found", "expiry_date": "Not Found"}
     try:
         import whois
-        # Bersihkan domain daripada 'http'
         d = domain.replace("https://", "").replace("http://", "").split('/')[0]
         w = whois.whois(d)
         
-        # Registrar
         data["registrar"] = w.registrar if w.registrar else "Private/Unknown"
         
-        # Tarikh (Kadang-kadang library bagi list, kita ambil item pertama)
+        # Ambil item pertama kalau data jenis list
         c_date = w.creation_date[0] if isinstance(w.creation_date, list) else w.creation_date
         e_date = w.expiration_date[0] if isinstance(w.expiration_date, list) else w.expiration_date
         
+        # --- PERTAHANAN ANTI-CRASH ---
         if c_date:
-            from datetime import datetime
-            age = (datetime.now() - c_date).days // 365
-            data["creation_date"] = f"{age} years ({c_date.strftime('%Y-%m-%d')})"
+            if isinstance(c_date, datetime): # Kalau dia objek masa sebenar
+                age = (datetime.now() - c_date).days // 365
+                data["creation_date"] = f"{age} years ({c_date.strftime('%Y-%m-%d')})"
+            else: # Kalau library tu bagi String/Teks
+                data["creation_date"] = str(c_date)[:10] 
         
         if e_date:
-            data["expiry_date"] = e_date.strftime('%Y-%m-%d')
-            
-        # Abuse Email
+            if isinstance(e_date, datetime):
+                data["expiry_date"] = e_date.strftime('%Y-%m-%d')
+            else:
+                data["expiry_date"] = str(e_date)[:10]
+                
+        # Tangkap Abuse Email
         if w.emails:
             emails = w.emails if isinstance(w.emails, list) else [w.emails]
             abuse = [e for e in emails if 'abuse' in e.lower()]
