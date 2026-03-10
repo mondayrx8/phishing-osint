@@ -19,10 +19,10 @@ import os
 
 # --- KONFIGURASI ---
 VT_API_KEY = os.environ.get("VT_API_KEY", "")
-ADMIN_PASSWORD = "admin"
+ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "")
 # FIX #4: Admin access via hashed session token instead of URL query param
 # The admin enters a secret passphrase in the sidebar — never visible in the URL bar
-ADMIN_SECRET = os.environ.get("ADMIN_SECRET", "phxadmin2024")
+ADMIN_SECRET = os.environ.get("ADMIN_SECRET", "")
 WHITELIST = frozenset(["touchngo.com.my", "tngdigital.com.my", "maybank2u.com.my", "cimbclicks.com.my", "google.com", "facebook.com", "gov.my", "bankrakyat.com.my", "rhbgroup.com", "ambank.com.my", "pbebank.com", "hlb.com.my"])
 DB_PATH = 'phishing_hunter.db'
 
