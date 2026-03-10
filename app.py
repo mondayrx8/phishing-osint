@@ -33,6 +33,7 @@ st.markdown('<link rel="preconnect" href="https://fonts.googleapis.com"><link re
 
 # FIX #2: CSS is READABLE in source but MINIFIED at runtime
 # Edit this block normally — Python does the compression before injecting
+
 _CSS_RAW = """
 @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600;700&family=Orbitron:wght@600;700;800;900&family=Share+Tech+Mono&family=Inter:wght@400;500;600;700&display=swap');
 :root {
@@ -218,7 +219,14 @@ code {
 #MainMenu { visibility: hidden; }
 footer { visibility: hidden; }
 header [data-testid="stToolbar"] { visibility: hidden; }
-
+/* TAMBAHAN ANTI-GEGAR */
+html, body, [data-testid="stAppViewContainer"] {
+    overflow-y: scroll !important;
+    overflow-x: hidden !important;
+}
+.main .block-container {
+    padding-bottom: 80px !important;
+}
 """
 
 def _minify_css(css):
@@ -332,27 +340,39 @@ def get_hosting_ip(url):
     except: return "Detection Failed", "Detection Failed"
 
 @st.cache_data(ttl=3600, show_spinner=False)
-def extract_whois_terminal(domain):
-    data = {"registrar": "Not Found", "abuse_email": "", "creation_date": "Not Found", "updated_date": "Not Found", "expiry_date": "Not Found"}
+def get_whois_data(domain):
+    """Fungsi WHOIS yang jauh lebih stabil menggunakan library python-whois"""
+    data = {"registrar": "Not Found", "abuse_email": "abuse@cloudflare.com", 
+            "creation_date": "Not Found", "expiry_date": "Not Found"}
     try:
-        raw = subprocess.run(['whois', domain], capture_output=True, text=True, timeout=10).stdout
-        m_reg = re.search(r'Registrar:\s*([^\r\n]+)', raw, re.IGNORECASE)
-        m_create = re.search(r'Creation Date:\s*([^\r\n]+)', raw, re.IGNORECASE)
-        m_update = re.search(r'Updated Date:\s*([^\r\n]+)', raw, re.IGNORECASE)
-        m_expiry = re.search(r'Registry Expiry Date:\s*([^\r\n]+)', raw, re.IGNORECASE)
-        m_abuse = re.search(r'Registrar Abuse Contact Email:\s*([a-zA-Z0-9.\-+_]+@[a-zA-Z0-9.\-+_]+\.[a-zA-Z]+)', raw, re.IGNORECASE)
+        import whois
+        # Bersihkan domain daripada 'http'
+        d = domain.replace("https://", "").replace("http://", "").split('/')[0]
+        w = whois.whois(d)
         
-        if m_reg: data["registrar"] = m_reg.group(1).strip()
-        if m_create: data["creation_date"] = m_create.group(1).strip()
-        if m_update: data["updated_date"] = m_update.group(1).strip()
-        if m_expiry: data["expiry_date"] = m_expiry.group(1).strip()
-        if m_abuse: data["abuse_email"] = m_abuse.group(1).strip()
-        else:
-            emails = [e for e in re.findall(r'[a-zA-Z0-9.\-+_]+@[a-zA-Z0-9.\-+_]+\.[a-zA-Z]+', raw) if not any(x in e.lower() for x in ['icann', 'iana'])]
-            if emails:
-                khas = [e for e in emails if any(kw in e.lower() for kw in ['abuse', 'support', 'admin'])]
-                data["abuse_email"] = khas[0] if khas else emails[0]
-    except: pass 
+        # Registrar
+        data["registrar"] = w.registrar if w.registrar else "Private/Unknown"
+        
+        # Tarikh (Kadang-kadang library bagi list, kita ambil item pertama)
+        c_date = w.creation_date[0] if isinstance(w.creation_date, list) else w.creation_date
+        e_date = w.expiration_date[0] if isinstance(w.expiration_date, list) else w.expiration_date
+        
+        if c_date:
+            from datetime import datetime
+            age = (datetime.now() - c_date).days // 365
+            data["creation_date"] = f"{age} years ({c_date.strftime('%Y-%m-%d')})"
+        
+        if e_date:
+            data["expiry_date"] = e_date.strftime('%Y-%m-%d')
+            
+        # Abuse Email
+        if w.emails:
+            emails = w.emails if isinstance(w.emails, list) else [w.emails]
+            abuse = [e for e in emails if 'abuse' in e.lower()]
+            data["abuse_email"] = abuse[0] if abuse else emails[0]
+            
+    except Exception as e:
+        pass
     return data
 
 def _is_whitelisted(root_domain):
@@ -438,7 +458,7 @@ with active_container:
                         
                         st.write("🔎 Running WHOIS & RDAP reconnaissance...")
                         ip_addr, hosting_org = get_hosting_ip(url_input)
-                        whois_data = extract_whois_terminal(root_domain)
+                        whois_data = get_whois_data(root_domain)
                         
                         abuse_email = whois_data['abuse_email']
                         if not abuse_email: abuse_email = "abuse@cloudflare.com" if "cloudflare" in hosting_org.lower() else f"abuse@{root_domain}"
