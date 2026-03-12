@@ -3,3 +3,4 @@ requests
 tldextract
 pandas
 python-whois
+python-dotenv

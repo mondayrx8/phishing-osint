@@ -16,6 +16,9 @@ import pandas as pd
 from datetime import datetime
 from contextlib import contextmanager
 import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # --- KONFIGURASI ---
 VT_API_KEY = os.environ.get("VT_API_KEY", "")
