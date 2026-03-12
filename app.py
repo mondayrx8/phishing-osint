@@ -22,10 +22,10 @@ load_dotenv()
 
 # --- KONFIGURASI ---
 VT_API_KEY = os.environ.get("VT_API_KEY", "")
-ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "")
+ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "k")
 # FIX #4: Admin access via hashed session token instead of URL query param
 # The admin enters a secret passphrase in the sidebar — never visible in the URL bar
-ADMIN_SECRET = os.environ.get("ADMIN_SECRET", "")
+ADMIN_SECRET = os.environ.get("ADMIN_SECRET", "k")
 WHITELIST = frozenset(["touchngo.com.my", "tngdigital.com.my", "maybank2u.com.my", "cimbclicks.com.my", "google.com", "facebook.com", "gov.my", "bankrakyat.com.my", "rhbgroup.com", "ambank.com.my", "pbebank.com", "hlb.com.my"])
 DB_PATH = 'phishing_hunter.db'
 
@@ -37,198 +37,396 @@ st.markdown('<link rel="preconnect" href="https://fonts.googleapis.com"><link re
 # FIX #2: CSS is READABLE in source but MINIFIED at runtime
 # Edit this block normally — Python does the compression before injecting
 
+def _get_falcon_b64():
+    import os, base64
+    if os.path.exists("FalconO.png"):
+        with open("FalconO.png", "rb") as f:
+            return base64.b64encode(f.read()).decode()
+    return ""
+
+_bg_b64 = _get_falcon_b64()
+_bg_css = f"url('data:image/png;base64,{_bg_b64}')" if _bg_b64 else "none"
+
 _CSS_RAW = """
-@import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600;700&family=Orbitron:wght@600;700;800;900&family=Share+Tech+Mono&family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+
+/* ── Design Tokens ───────────────────────────────────── */
 :root {
-    --n: #00ff41;
-    --nd: #00cc33;
-    --bgd: #060a0e;
-    --bgc: #0d1219;
-    --bge: #111820;
-    --tp: #c9d1d9;
-    --tm: #5a6672;
-    --b: rgba(0, 255, 65, .12);
-    --bh: rgba(0, 255, 65, .3);
+    --bg-page: #0B111D;
+    --bg-card: rgba(15, 23, 42, 0.45);
+    --text-primary: #F8FAFC;
+    --text-secondary: #CBD5E1;
+    --text-muted: #94A3B8;
+    --accent: #3B82F6;
+    --accent-hover: #60A5FA;
+    --accent-light: rgba(59, 130, 246, 0.15);
+    --danger: #EF4444;
+    --danger-light: rgba(239, 68, 68, 0.15);
+    --warning-bg: rgba(245, 158, 11, 0.1);
+    --warning-border: #F59E0B;
+    --border: rgba(255, 255, 255, 0.15);
+    --border-focus: #3B82F6;
+    --shadow-sm: 0 4px 6px rgba(0,0,0,0.3);
+    --shadow-card: 0 8px 32px rgba(0,0,0,0.5);
+    --shadow-hover: 0 12px 48px rgba(0,0,0,0.7);
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+    --radius-pill: 50px;
+    --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
 }
-.stApp, [data-testid=stAppViewContainer] {
-    background: var(--bgd) !important;
-    color: var(--tp) !important;
+
+/* ── Global Base ─────────────────────────────────────── */
+html, body, .stApp, [data-testid="stAppViewContainer"] {
+    background-color: var(--bg-page) !important;
+    background-image: __BG_IMG_PLACEHOLDER__ !important;
+    background-size: cover !important;
+    background-position: center !important;
+    background-attachment: fixed !important;
+    background-repeat: no-repeat !important;
+    color: var(--text-primary) !important;
+    font-family: var(--font) !important;
 }
-.stApp::after {
+
+[data-testid="stAppViewContainer"]::before {
     content: '';
     position: fixed;
-    inset: 0;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: radial-gradient(circle at center, rgba(11, 17, 29, 0.4) 0%, rgba(11, 17, 29, 0.9) 100%);
     pointer-events: none;
+    z-index: 0;
+}
+
+.stApp p, .stApp h1, .stApp h2, .stApp h3, .stApp h4, .stApp h5, .stApp h6, .stApp button, .stApp input, .stApp label, .stApp div[data-testid="stMarkdownContainer"] { 
+    font-family: var(--font) !important; 
+}
+
+.main .block-container {
+    position: relative;
     z-index: 1;
-    background: repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,255,65,.012) 3px, rgba(0,255,65,.012) 4px);
+    max-width: 1100px !important;
+    padding: 2rem 1.5rem 5rem !important;
 }
-[data-testid=stHeader] { background: 0 0 !important; }
-div[data-testid=metric-container] {
-    background: linear-gradient(145deg, var(--bgc), var(--bge)) !important;
-    border: 1px solid var(--b) !important;
-    border-left: 3px solid var(--n) !important;
-    border-radius: 12px !important;
-    padding: 20px 16px !important;
-    box-shadow: 0 0 20px rgba(0,255,65,.04), inset 0 1px 0 rgba(0,255,65,.03) !important;
-    transition: all .3s ease !important;
+
+/* ── Eradicate Streamlit Branding ────────────────────── */
+[data-testid="stHeader"],
+#MainMenu,
+footer,
+header [data-testid="stToolbar"] {
+    display: none !important;
+    visibility: hidden !important;
+    height: 0 !important;
 }
-div[data-testid=metric-container]:hover {
-    box-shadow: 0 0 30px rgba(0,255,65,.1), 0 0 60px rgba(0,255,65,.03) !important;
-    border-color: var(--bh) !important;
-    transform: translateY(-2px) !important;
+
+/* ── Hero Heading ────────────────────────────────────── */
+.hero-title {
+    text-align: center !important;
+    font-size: clamp(2rem, 5vw, 2.8rem) !important;
+    font-weight: 900 !important;
+    color: var(--text-primary) !important;
+    letter-spacing: -0.02em !important;
+    line-height: 1.2 !important;
+    margin: 1.5rem 0 0.5rem !important;
 }
-div[data-testid=metric-container] label {
-    color: var(--n) !important;
-    font-family: 'Share Tech Mono', monospace !important;
-    font-size: .78rem !important;
+.hero-subtitle {
+    text-align: center !important;
+    font-size: 1.05rem !important;
+    font-weight: 400 !important;
+    color: var(--text-secondary) !important;
+    max-width: 600px !important;
+    margin: 0 auto 2rem !important;
+    line-height: 1.6 !important;
+}
+
+/* ── Section Labels ──────────────────────────────────── */
+.section-label {
+    font-size: 0.8rem !important;
+    font-weight: 700 !important;
+    color: var(--text-muted) !important;
+    text-transform: uppercase !important;
     letter-spacing: 1.5px !important;
+    margin-bottom: 0.5rem !important;
+}
+
+/* ── Metrics ─────────────────────────────────────────── */
+div[data-testid="metric-container"] {
+    background: var(--bg-card) !important;
+    border: 1px solid var(--border) !important;
+    border-radius: var(--radius-lg) !important;
+    padding: 1.5rem 1.25rem !important;
+    box-shadow: var(--shadow-card) !important;
+    text-align: center !important;
+    transition: all 0.25s ease !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+div[data-testid="metric-container"]:hover {
+    box-shadow: var(--shadow-hover) !important;
+    transform: translateY(-3px) !important;
+}
+div[data-testid="metric-container"] label {
+    color: var(--text-secondary) !important;
+    font-size: 0.78rem !important;
+    font-weight: 600 !important;
     text-transform: uppercase !important;
-    text-shadow: 0 0 6px rgba(0,255,65,.25) !important;
-}
-div[data-testid=metric-container] [data-testid=stMetricValue] {
-    color: #fff !important;
-    font-family: Orbitron, sans-serif !important;
-    font-weight: 700 !important;
-    font-size: 1.8rem !important;
-}
-.stButton>button {
-    background: rgba(0,255,65,.06) !important;
-    color: var(--n) !important;
-    border: 1px solid rgba(0,255,65,.25) !important;
-    border-radius: 8px !important;
-    font-family: Inter, sans-serif !important;
-    font-weight: 700 !important;
-    font-size: .82rem !important;
     letter-spacing: 1px !important;
-    text-transform: uppercase !important;
-    padding: 10px 20px !important;
-    transition: all .3s ease !important;
-    text-shadow: 0 0 4px rgba(0,255,65,.3) !important;
+    text-align: center !important;
+    width: 100% !important;
 }
-.stButton>button:hover {
-    background: rgba(0,255,65,.14) !important;
-    box-shadow: 0 0 20px rgba(0,255,65,.2), 0 0 40px rgba(0,255,65,.06) !important;
-    transform: translateY(-1px) !important;
-    color: #fff !important;
-}
-button[data-testid=stBaseButton-primary] {
-    background: linear-gradient(135deg, var(--n), var(--nd)) !important;
-    color: #000 !important;
+div[data-testid="metric-container"] [data-testid="stMetricValue"] {
+    color: var(--text-primary) !important;
     font-weight: 800 !important;
-    text-shadow: none !important;
-    border: none !important;
-    box-shadow: 0 0 18px rgba(0,255,65,.2) !important;
+    font-size: 2rem !important;
+    text-align: center !important;
+    justify-content: center !important;
 }
-button[data-testid=stBaseButton-primary]:hover {
-    box-shadow: 0 0 30px rgba(0,255,65,.4), 0 0 60px rgba(0,255,65,.1) !important;
-    color: #000 !important;
+div[data-testid="metric-container"] [data-testid="stMetricValue"] > div {
+    width: 100% !important;
+    text-align: center !important;
+    justify-content: center !important;
 }
-a[data-testid=stBaseLinkButton-primary] {
-    background: linear-gradient(135deg, var(--n), var(--nd)) !important;
-    color: #000 !important;
-    border-radius: 8px !important;
-    font-family: Inter, sans-serif !important;
-    font-weight: 700 !important;
-    letter-spacing: 1px !important;
-    text-transform: uppercase !important;
-    box-shadow: 0 0 18px rgba(0,255,65,.2) !important;
-    transition: all .3s ease !important;
+
+/* ── Custom Stat Cards (HTML-based) ──────────────────── */
+.stat-card {
+    flex: 1;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem 1rem;
+    box-shadow: var(--shadow-card);
+    text-align: center;
+    transition: all 0.25s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.4rem;
 }
-a[data-testid=stBaseLinkButton-primary]:hover {
-    box-shadow: 0 0 30px rgba(0,255,65,.4), 0 0 60px rgba(0,255,65,.1) !important;
-    transform: translateY(-1px) !important;
+.stat-card:hover {
+    box-shadow: var(--shadow-hover);
+    transform: translateY(-3px);
 }
+.stat-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+.stat-value {
+    font-size: 2.2rem;
+    font-weight: 800;
+    color: var(--text-primary);
+    line-height: 1;
+}
+.stat-value--danger {
+    color: var(--danger) !important;
+}
+
+/* ── Search / Text Inputs ────────────────────────────── */
 .stTextInput>div>div>input {
-    background: var(--bgc) !important;
-    color: var(--n) !important;
-    border: 1px solid var(--b) !important;
-    border-radius: 8px !important;
-    font-family: 'Fira Code', monospace !important;
-    font-size: .92rem !important;
-    padding: 12px 14px !important;
-    caret-color: var(--n) !important;
-    transition: all .25s ease !important;
+    background: var(--bg-card) !important;
+    color: var(--text-primary) !important;
+    border: 1.5px solid var(--border) !important;
+    border-radius: var(--radius-pill) !important;
+    font-size: 1rem !important;
+    padding: 14px 22px !important;
+    transition: all 0.2s ease !important;
+    box-shadow: var(--shadow-sm) !important;
 }
 .stTextInput>div>div>input:focus {
-    border-color: var(--n) !important;
-    box-shadow: 0 0 12px rgba(0,255,65,.12) !important;
+    border-color: var(--accent) !important;
+    box-shadow: 0 0 0 3px rgba(37,99,235,.15) !important;
+    outline: none !important;
 }
-.stTextInput>div>div>input::placeholder { color: var(--tm) !important; }
+.stTextInput>div>div>input::placeholder {
+    color: var(--text-muted) !important;
+}
 .stTextInput>label, .stNumberInput>label {
-    color: var(--tp) !important;
-    font-family: Inter, sans-serif !important;
-    font-size: .88rem !important;
+    color: var(--text-secondary) !important;
+    font-size: 0.88rem !important;
+    font-weight: 500 !important;
 }
 .stNumberInput>div>div>input {
-    background: var(--bgc) !important;
-    color: var(--n) !important;
-    border: 1px solid var(--b) !important;
-    border-radius: 8px !important;
-    font-family: 'Fira Code', monospace !important;
+    background: var(--bg-card) !important;
+    color: var(--text-primary) !important;
+    border: 1.5px solid var(--border) !important;
+    border-radius: var(--radius-sm) !important;
 }
-[data-testid=stExpander] {
-    border: 1px solid var(--b) !important;
-    border-radius: 10px !important;
-    background: var(--bgc) !important;
-}
-.stTabs [data-baseweb=tab-list] {
-    gap: 0 !important;
-    background: var(--bgc) !important;
-    border-radius: 10px !important;
-    padding: 3px !important;
-    border: 1px solid var(--b) !important;
-}
-.stTabs [data-baseweb=tab] {
-    background: 0 0 !important;
-    color: var(--tm) !important;
-    border-radius: 7px !important;
-    font-family: Inter, sans-serif !important;
+
+/* ── Buttons ─────────────────────────────────────────── */
+.stButton>button {
+    background: var(--bg-card) !important;
+    color: var(--accent) !important;
+    border: 1.5px solid var(--border) !important;
+    border-radius: var(--radius-sm) !important;
     font-weight: 600 !important;
-    font-size: .82rem !important;
-    letter-spacing: .5px !important;
-    padding: 10px 18px !important;
-    transition: all .25s ease !important;
+    font-size: 0.88rem !important;
+    padding: 10px 24px !important;
+    transition: all 0.2s ease !important;
+    text-shadow: none !important;
 }
-.stTabs [aria-selected=true] {
-    background: rgba(0,255,65,.08) !important;
-    color: var(--n) !important;
-    text-shadow: 0 0 6px rgba(0,255,65,.2) !important;
+.stButton>button:hover {
+    background: var(--accent-light) !important;
+    border-color: var(--accent) !important;
+    transform: translateY(-1px) !important;
+    box-shadow: var(--shadow-card) !important;
+    color: var(--accent) !important;
 }
-.stTabs [data-baseweb=tab-highlight] {
-    background-color: var(--n) !important;
-    box-shadow: 0 0 6px var(--n) !important;
+button[data-testid="stBaseButton-primary"] {
+    background: var(--accent) !important;
+    color: #FFFFFF !important;
+    border: none !important;
+    border-radius: var(--radius-sm) !important;
+    font-weight: 700 !important;
+    box-shadow: 0 2px 8px rgba(37,99,235,.25) !important;
 }
-.stTabs [data-baseweb=tab-border] { display: none !important; }
-[data-testid=stDataFrame] {
-    border: 1px solid var(--b) !important;
-    border-radius: 10px !important;
+button[data-testid="stBaseButton-primary"]:hover {
+    background: var(--accent-hover) !important;
+    box-shadow: 0 6px 20px rgba(37,99,235,.3) !important;
+    transform: translateY(-2px) !important;
+    color: #FFFFFF !important;
 }
-div[data-testid=stAlert] {
-    border-radius: 8px !important;
-    font-family: Inter, sans-serif !important;
+
+/* ── Link Buttons ────────────────────────────────────── */
+a[data-testid="stBaseLinkButton-primary"] {
+    background: var(--accent) !important;
+    color: #FFFFFF !important;
+    border-radius: var(--radius-sm) !important;
+    font-weight: 700 !important;
+    box-shadow: 0 2px 8px rgba(37,99,235,.25) !important;
+    transition: all 0.2s ease !important;
 }
-hr { border-color: var(--b) !important; }
-.stMarkdown, .stMarkdown p { color: var(--tp) !important; }
+a[data-testid="stBaseLinkButton-primary"]:hover {
+    background: var(--accent-hover) !important;
+    box-shadow: 0 6px 20px rgba(37,99,235,.3) !important;
+    transform: translateY(-2px) !important;
+}
+
+/* ── Cards / Expanders ───────────────────────────────── */
+[data-testid="stExpander"] {
+    background: var(--bg-card) !important;
+    border: 1px solid var(--border) !important;
+    border-radius: var(--radius-lg) !important;
+    box-shadow: var(--shadow-card) !important;
+    overflow: hidden !important;
+}
+[data-testid="stExpander"] summary {
+    font-weight: 600 !important;
+    color: var(--text-primary) !important;
+}
+
+/* ── Tabs ────────────────────────────────────────────── */
+.stTabs [data-baseweb="tab-list"] {
+    gap: 0 !important;
+    background: var(--bg-card) !important;
+    border-radius: var(--radius-md) !important;
+    padding: 4px !important;
+    border: 1px solid var(--border) !important;
+    box-shadow: var(--shadow-sm) !important;
+}
+.stTabs [data-baseweb="tab"] {
+    background: transparent !important;
+    color: var(--text-muted) !important;
+    border-radius: var(--radius-sm) !important;
+    font-weight: 600 !important;
+    font-size: 0.85rem !important;
+    padding: 10px 20px !important;
+    transition: all 0.2s ease !important;
+}
+.stTabs [aria-selected="true"] {
+    background: var(--accent-light) !important;
+    color: var(--accent) !important;
+}
+.stTabs [data-baseweb="tab-highlight"] {
+    background-color: var(--accent) !important;
+}
+.stTabs [data-baseweb="tab-border"] { display: none !important; }
+
+/* ── Data Tables ─────────────────────────────────────── */
+[data-testid="stDataFrame"] {
+    border: 1px solid var(--border) !important;
+    border-radius: var(--radius-md) !important;
+    box-shadow: var(--shadow-sm) !important;
+}
+
+/* ── Alerts ───────────────────────────────────────────── */
+div[data-testid="stAlert"] {
+    border-radius: var(--radius-sm) !important;
+}
+
+/* ── Threat Banners ──────────────────────────────────── */
+.threat-banner-danger {
+    background: var(--danger-light) !important;
+    border: 1px solid var(--danger) !important;
+    border-left: 4px solid var(--danger) !important;
+    border-radius: var(--radius-sm) !important;
+    padding: 1rem 1.25rem !important;
+    margin-bottom: 1rem !important;
+}
+.threat-banner-danger p {
+    color: var(--danger) !important;
+    font-weight: 700 !important;
+    font-size: 0.95rem !important;
+    margin: 0 !important;
+}
+.threat-banner-warning {
+    background: var(--warning-bg) !important;
+    border: 1px solid var(--warning-border) !important;
+    border-left: 4px solid var(--warning-border) !important;
+    border-radius: var(--radius-sm) !important;
+    padding: 1rem 1.25rem !important;
+    margin-bottom: 1rem !important;
+}
+.threat-banner-warning p {
+    color: #92400E !important;
+    font-weight: 700 !important;
+    font-size: 0.95rem !important;
+    margin: 0 !important;
+}
+
+/* ── Markdown / Typography ───────────────────────────── */
+.stMarkdown, .stMarkdown p { color: var(--text-primary) !important; }
+.stMarkdown h1, .stMarkdown h2, .stMarkdown h3 {
+    color: var(--text-primary) !important;
+    font-weight: 700 !important;
+}
+hr { border-color: var(--border) !important; }
 code {
-    color: var(--n) !important;
-    background: rgba(0,255,65,.06) !important;
+    color: var(--accent) !important;
+    background: var(--accent-light) !important;
     border-radius: 4px !important;
     padding: 2px 6px !important;
+    font-size: 0.88em !important;
 }
-::-webkit-scrollbar { width: 5px; height: 5px; }
-::-webkit-scrollbar-track { background: var(--bgd); }
-::-webkit-scrollbar-thumb { background: var(--b); border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: var(--nd); }
-#MainMenu { visibility: hidden; }
-footer { visibility: hidden; }
-header [data-testid="stToolbar"] { visibility: hidden; }
-/* TAMBAHAN ANTI-GEGAR */
+a { color: var(--accent) !important; }
+a:hover { color: var(--accent-hover) !important; }
+
+/* ── Scrollbar ───────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--bg-page); }
+::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #94A3B8; }
+
+/* ── Glassmorphism & Glitch Fixes ────────────────────── */
+.stat-card, div[data-testid="metric-container"], [data-testid="stExpander"], 
+.stTextInput>div>div>input, .stNumberInput>div>div>input, .stButton>button, 
+[data-testid="stDataFrame"], .threat-banner-danger, .threat-banner-warning {
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
+}
+
+div[data-baseweb="input"] {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+/* ── Anti-Jitter Fix ─────────────────────────────────── */
 html, body, [data-testid="stAppViewContainer"] {
     overflow-y: scroll !important;
     overflow-x: hidden !important;
-}
-.main .block-container {
-    padding-bottom: 80px !important;
 }
 """
 
@@ -240,7 +438,9 @@ def _minify_css(css):
     css = re.sub(r';}', '}', css)                          # remove trailing semicolons
     return css.strip()
 
-st.markdown(f"<style>{_minify_css(_CSS_RAW)}</style>", unsafe_allow_html=True)
+_CSS_INJECT = _CSS_RAW.replace("__BG_IMG_PLACEHOLDER__", _bg_css)
+st.markdown(f"<style>{_minify_css(_CSS_INJECT)}</style>", unsafe_allow_html=True)
+
 
 # --- FIX #1: Proper DB connections — open/close per operation, no thread-local leak ---
 def _get_conn():
@@ -398,9 +598,8 @@ if 'scan_result' not in st.session_state: st.session_state.scan_result = None
 if 'captcha_code' not in st.session_state: st.session_state.captcha_code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=5))
 
 # Header
-st.markdown("<h1 style='text-align:center;font-family:Orbitron,sans-serif;font-weight:900;color:#00ff41;letter-spacing:4px;text-shadow:0 0 15px rgba(0,255,65,.5),0 0 30px rgba(0,255,65,.3);margin-bottom:0'>🛡️ PHISHING HUNTER</h1>", unsafe_allow_html=True)
-st.markdown("<p style='text-align:center;font-family:Share Tech Mono,monospace;font-size:14px;color:#5a6672;letter-spacing:3px;text-transform:uppercase;margin-top:0'>Threat Intelligence & Domain Takedown Platform</p>", unsafe_allow_html=True)
-st.divider()
+st.markdown("<h1 class='hero-title'>🛡️ Know who you're dealing with.</h1>", unsafe_allow_html=True)
+st.markdown("<p class='hero-subtitle'>Phishing Hunter — Community-powered threat intelligence. Scan domains, expose phishing, and protect what matters.</p>", unsafe_allow_html=True)
 
 # --- Tab layout ---
 if is_admin:
@@ -412,16 +611,29 @@ else:
 with active_container:
     # --- DASHBOARD ---
     total_lapor, total_berjaya = get_stats()
-    col1, col2, col3 = st.columns(3)
-    col1.metric("🚨 Threats Identified", total_lapor)
-    col2.metric("💀 Domains Neutralized", total_berjaya)
-    col3.metric("📈 Kill Rate", f"{round((total_berjaya/total_lapor)*100, 1) if total_lapor > 0 else 0}%")
-    st.write("")
+    kill_rate = round((total_berjaya/total_lapor)*100, 1) if total_lapor > 0 else 0
+
+    st.markdown(f"""
+    <div style="display:flex;gap:1rem;margin-bottom:2rem;">
+        <div class="stat-card">
+            <span class="stat-label">Threats Identified</span>
+            <span class="stat-value stat-value--danger">{total_lapor}</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-label">Domains Neutralized</span>
+            <span class="stat-value">{total_berjaya}</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-label">Success Rate</span>
+            <span class="stat-value">{kill_rate}%</span>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
 
     # --- INPUT ---
     with st.container():
-        st.markdown("### 🎯 Target Acquisition")
-        url_input = st.text_input("Paste suspect URL for deep analysis:", placeholder="https://suspicious-domain.example.com").strip()
+        st.markdown("<p class='section-label'>Domain Scanner</p>", unsafe_allow_html=True)
+        url_input = st.text_input("Scan a suspect URL", placeholder="Enter a URL to analyse — e.g. https://suspicious-site.com", label_visibility="collapsed").strip()
         if url_input and not url_input.startswith("http"): url_input = "https://" + url_input
 
         c_cap1, c_cap2 = st.columns([1, 2])
@@ -488,30 +700,36 @@ with active_container:
     # --- RESULTS ---
     if st.session_state.scan_result:
         res = st.session_state.scan_result
-        st.divider()
-        if "DANGEROUS" in res['threat']: st.error(f"🚨 **THREAT CONFIRMED:** {res['threat']}")
-        else: st.warning(f"⚠️ **{res['threat']}** — Manual review recommended.")
-        
+        st.markdown("<div style='height: 1rem;'></div>", unsafe_allow_html=True)
+
+        # Threat banner
+        if "DANGEROUS" in res['threat']:
+            st.markdown(f"<div class='threat-banner-danger'><p>🚨 THREAT CONFIRMED — {res['threat']}</p></div>", unsafe_allow_html=True)
+        else:
+            st.markdown(f"<div class='threat-banner-warning'><p>⚠️ {res['threat']} — Manual review recommended</p></div>", unsafe_allow_html=True)
+
         col_res1, col_res2 = st.columns([1.5, 1])
         with col_res1:
             with st.expander("📌 Infrastructure & Registration Intelligence", expanded=True):
                 st.markdown(f"""
-                - **Resolved IP:** `{res['ip']}`
-                - **Hosting Provider:** {res['hosting']}
-                - **Domain Registrar:** {res['whois']['registrar']}
-                - **Registration Date:** {res['whois']['creation_date']}
-                - **Expiry Date:** {res['whois']['expiry_date']}
+                | Field | Value |
+                |---|---|
+                | **Resolved IP** | `{res['ip']}` |
+                | **Hosting Provider** | {res['hosting']} |
+                | **Domain Registrar** | {res['whois']['registrar']} |
+                | **Registration Date** | {res['whois']['creation_date']} |
+                | **Expiry Date** | {res['whois']['expiry_date']} |
                 """)
             st.info(f"**Abuse Contact:** 📧 `{res['abuse_email']}`")
-            
+
             # TAKEDOWN BUTTON
             subj = urllib.parse.quote(f"URGENT: Phishing Abuse Report - {res['domain']}")
             body = urllib.parse.quote(f"Hello Abuse Desk,\n\nI am reporting a malicious phishing website hosted/registered on your network.\n\nMalicious URL: {res['url']}\nIP Address: {res['ip']}\nHosting: {res['hosting']}\nCreation Date: {res['whois']['creation_date']}\nThreat Status: {res['threat']}\nScreenshot Evidence: {res['image']}\n\nPlease investigate and suspend this domain immediately.\n\nRegards,\nReported via Phishing Hunter")
-            st.link_button("📨 SUBMIT TAKEDOWN REQUEST", f"mailto:{res['abuse_email']}?subject={subj}&body={body}", type="primary", use_container_width=True)
-            
+            st.link_button("📨 Submit Takedown Request", f"mailto:{res['abuse_email']}?subject={subj}&body={body}", type="primary", use_container_width=True)
+
         with col_res2:
             # FIX #3: Restored st.image() for Streamlit's built-in image safety
-            st.markdown("**📸 Visual Evidence:**")
+            st.markdown("<p class='section-label'>Visual Evidence</p>", unsafe_allow_html=True)
             if res['image']:
                 st.image(res['image'], use_container_width=True, caption="Automated screenshot capture")
             else: st.error("Screenshot blocked — target has anti-bot protection.")
@@ -539,7 +757,7 @@ if is_admin:
             else: st.info("No threat records found in the database.")
 
 # --- Bottom Operator Authentication ---
-st.markdown("<br><br><br>", unsafe_allow_html=True)
+st.markdown("<div style='height: 4rem;'></div>", unsafe_allow_html=True)
 with st.expander("⚙️ System Configuration"):
     _admin_phrase = st.text_input("Enter operator passphrase:", type="password", key="bottom_admin_passphrase")
     if _admin_phrase:
@@ -557,4 +775,4 @@ with st.expander("⚙️ System Configuration"):
         if st.button("🔓 Revoke Access", use_container_width=True):
             st.session_state.admin_authenticated = False
             st.rerun()
-st.markdown("<div style='height: 50px;'></div>", unsafe_allow_html=True)
+st.markdown("<div style='height: 2rem;'></div>", unsafe_allow_html=True)
