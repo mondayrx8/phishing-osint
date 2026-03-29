@@ -1,13 +1,13 @@
-# Abaikan folder Virtual Environment
+# :P
 venv/
 env/
 __pycache__/
 
-# Abaikan Database (Jangan bagi orang nampak rekod siasatan kau)
+# :P
 phishing_hunter.db
 phishing_hunter.db-wal
 phishing_hunter.db-shm
 
-# Abaikan fail rahsia OS
+# :p
 .DS_Store
 .env
