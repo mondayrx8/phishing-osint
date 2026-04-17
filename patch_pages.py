@@ -29,7 +29,7 @@ text = text.replace('st.markdown("""\n<div id="home"></div>', 'if p == "home":\n
 hero_block_old = """    <h1 class="hero-title">Expose <span class="text-gradient">Unknown Threats</span> in Seconds</h1>
     <p class="hero-subtitle">Phishing Hunter intercepts malicious infrastructure before it impacts your organization. Deploy automated reconnaissance, gather forensic evidence, and initiate immediate takedowns.</p>
 </div>
-""", unsafe_allow_html=True)"""
+\"\"\", unsafe_allow_html=True)"""
 
 hero_block_new = """    <h1 class="hero-title">Expose <span class="text-gradient">Unknown Threats</span> in Seconds</h1>
     <p class="hero-subtitle">Phishing Hunter intercepts malicious infrastructure before it impacts your organization. Deploy automated reconnaissance, gather forensic evidence, and initiate immediate takedowns.</p>
