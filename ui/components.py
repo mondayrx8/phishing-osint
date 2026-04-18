@@ -25,7 +25,7 @@ class UIComponents:
         <div class="custom-navbar">
             <div class="nav-brand">
                 <img src="{self._logo_src}" alt="BudakNoob Logo" />
-                <span>ZERO TRUST</span>
+                <span><span style="color:var(--accent);">></span> ZERO_TRUST</span>
             </div>
             <div class="nav-links">
                 <a href="/?p=home" target="_self">Home</a>
@@ -43,10 +43,10 @@ class UIComponents:
         """Return the fixed-position bottom footer HTML."""
         return """
         <div class="custom-footer">
-            <p>&copy; 2026 ZERO TRUST powered by BudakNoob OSINT Team.
-            All rights reserved. |
-            <a href="#">Terms of Service</a> |
-            <a href="#">Privacy Policy</a></p>
+            <p>&copy; 2026 ZERO_TRUST :: BUDAKNOOB OSINT.
+            ALL RIGHTS RESERVED. |
+            <a href="#">TOS</a> |
+            <a href="#">PRIVACY</a></p>
         </div>
         """
 
@@ -58,8 +58,8 @@ class UIComponents:
         return """
         <div class="hero-container">
             <div class="hero-glow"></div>
-            <div class="hero-badge">Advanced Threat Intelligence</div>
-            <h1 class="hero-title">Expose <span class="text-gradient">Unknown Threats</span> in Seconds</h1>
+            <div class="hero-badge">> THREAT_INTEL_SYSTEM_ONLINE</div>
+            <h1 class="hero-title cyber-glitch">Expose <span class="text-gradient">Unknown Threats</span><br>in Seconds<span class="blink-cursor">_</span></h1>
             <p class="hero-subtitle">NEVER TRUST, ALWAYS VERIFY. ZERO TRUST intercepts malicious
             infrastructure before it impacts your organization. Deploy automated
             reconnaissance, gather forensic evidence, and initiate immediate
@@ -75,7 +75,7 @@ class UIComponents:
         return f"""
         <div class="stats-grid">
             <div class="stat-card">
-                <div class="stat-icon">🎯</div>
+                <div class="stat-icon">☣️</div>
                 <div class="stat-content">
                     <span class="stat-label">Threats Identified</span>
                     <span class="stat-value stat-value--danger">{total_reports}</span>
@@ -105,22 +105,22 @@ class UIComponents:
         """Return the phishing-awareness education section HTML."""
         return """
         <div class="section-container">
-            <h2 class="section-title">Phishing <span class="text-gradient">Awareness</span></h2>
+            <h2 class="section-title"><span class="text-gradient">></span> Phishing <span class="text-gradient">Awareness</span></h2>
             <p class="section-subtitle">Understanding the anatomy of a phishing attack is
             your first line of defense against cyber threats.</p>
             <div class="grid-3">
                 <div class="info-card">
-                    <h3>🎣 The Bait</h3>
+                    <h3 class="cyber-glitch">🎣 The Bait</h3>
                     <p>Scammers use urgency, fear, or fake rewards to prompt immediate
                     action. Always remain skeptical of unexpected emails.</p>
                 </div>
                 <div class="info-card">
-                    <h3>🔗 The Hook</h3>
+                    <h3 class="cyber-glitch">🔗 The Hook</h3>
                     <p>Spoofed links are designed to look like legitimate websites.
                     Carefully inspect domain names and look for subtle typos.</p>
                 </div>
                 <div class="info-card">
-                    <h3>💸 The Catch</h3>
+                    <h3 class="cyber-glitch">💸 The Catch</h3>
                     <p>If you enter your credentials, attackers harvest them instantly
                     to compromise your accounts and steal your data.</p>
                 </div>
@@ -136,15 +136,15 @@ class UIComponents:
         return """
         <div id="donate"></div>
         <div class="section-container">
-            <h2 class="section-title">Support <span class="text-gradient">The Mission</span></h2>
+            <h2 class="section-title"><span class="text-gradient">></span> Support <span class="text-gradient">The Mission</span></h2>
             <p class="section-subtitle">ZERO TRUST is maintained by the BudakNoob OSINT Team.
             Your donations cover our server costs and intelligence API expenses,
             allowing us to keep this service free for the community.</p>
             <div style="display: flex; justify-content: center; gap: 1rem; margin-top: 2rem; flex-wrap: wrap;">
                 <a href="#" class="donate-btn donate-crypto">
-                    <span style="font-size: 1.5rem;">🪙</span> Crypto Donation</a>
+                    <span style="font-size: 1.5rem;">🪙</span> Crypto Transmit</a>
                 <a href="#" class="donate-btn donate-coffee">
-                    <span style="font-size: 1.5rem;">☕</span> Buy Us a Coffee</a>
+                    <span style="font-size: 1.5rem;">☕</span> Inject Caffeine</a>
             </div>
         </div>
         """
@@ -156,7 +156,7 @@ class UIComponents:
         """Return the scan-page header HTML."""
         return """
         <div class="section-container" style="margin-bottom: 1.5rem; margin-top: 2rem;">
-            <h2 class="section-title">Scan & <span class="text-gradient">Report</span></h2>
+            <h2 class="section-title"><span class="text-gradient">></span> Scan & <span class="text-gradient">Report</span></h2>
             <p class="section-subtitle">Use our advanced threat intelligence to scan
             suspicious domains and initiate immediate takedowns.</p>
         </div>
@@ -170,11 +170,11 @@ class UIComponents:
         if "DANGEROUS" in threat:
             return (
                 f"<div class='threat-banner-danger'>"
-                f"<p>🚨 THREAT CONFIRMED — {threat}</p></div>"
+                f"<p><span class='cyber-glitch'>[!] THREAT CONFIRMED</span> :: {threat}</p></div>"
             )
         return (
             f"<div class='threat-banner-warning'>"
-            f"<p>⚠️ {threat} — Manual review recommended</p></div>"
+            f"<p>[?] {threat} :: MANUAL REVIEW RECOMMENDED</p></div>"
         )
 
     # ── Takedown mailto ────────────────────────────────────────────
